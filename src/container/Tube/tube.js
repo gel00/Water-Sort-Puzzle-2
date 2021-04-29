@@ -1,23 +1,25 @@
-class Tube {
-  constructor(height, width, fluidNum = 4, fluidLevel) {
+export default class Tube {
+  constructor(height, width, fluidMaxLevel = 4, fluidLevel) {
     this.height = height;
     this.width = width;
     this.area = this.height * this.width;
-    this.fluidNum = fluidNum;
-    this.fluidLevel = fluidLevel || fluidNum;
-    this.fluidHeight = height / (fluidNum + 1);
+    this.fluidMaxLevel = fluidMaxLevel;
+    this.fluidLevel = fluidLevel || fluidMaxLevel;
+    this.fluidHeight = height / (fluidMaxLevel + 1);
     this.fluidArea = this.fluidHeight * this.width;
-    this.maxFluidArea = this.maxfluidHeight * width * fluidNum;
+    this.maxFluidArea = this.maxfluidHeight * width * fluidMaxLevel;
   }
-  get fluidTotalArea() {
-    return this.fluidHeight * this.width * this.fluidLevel;
+  getFluidTotalArea(fluidLevel) {
+    return this.fluidHeight * this.width * fluidLevel;
   }
-  get isTriangle() {
+  isTriangle(fluidLevel) {
     //console.log(this.fluidTotalArea, this.area / 2);
-    return this.area / 2 >= this.fluidTotalArea;
+    return this.area / 2 >= this.getFluidTotalArea(fluidLevel);
   }
-  findTurnRad() {
-    let { fluidTotalArea, width, height, isTriangle } = this;
+  findTurnRad(fluidLevel) {
+    let { width, height } = this;
+    let isTriangle = this.isTriangle(fluidLevel);
+    let fluidTotalArea = this.getFluidTotalArea(fluidLevel);
     //check shape of the fluid; trapezoid or triangle
     //find trapezoid's smaller side , triangle's height
     let triangleHeight = isTriangle
@@ -27,27 +29,27 @@ class Tube {
     let base = (2 * fluidTotalArea) / height;
     //base can't be bigger than tube's width;
     base = base > width ? width : base;
-    console.log("O.side: " + base);
     //find precise angle when fluid reach the edge of the tube
-    console.log("tH: " + triangleHeight);
     return Math.atan(triangleHeight / base);
   }
-  findTurnDeg() {
-    return (this.findTurnRad() * 180) / Math.PI;
+  radToDeg(rad) {
+    return (rad * 180) / Math.PI;
   }
 
   getFluidShapeByRad(rad, area, fluidLevel) {
     let shape = {};
-    shape.beta = rad;
-    shape.alpha = Math.PI / 2 - rad;
+    shape.beta = rad; //right-angled triangle bottom angle
+    shape.alpha = Math.PI / 2 - rad; //right-angled triangle top angle
     shape.a = Math.sqrt((2 * area * fluidLevel) / Math.tan(shape.beta));
     shape.area = area * fluidLevel;
+    //is shape is a trapezium
     if (shape.a > this.width) {
       shape.a = this.width;
       shape.isTriangle = false;
       shape.b = shape.a / Math.tan(shape.alpha);
       shape.triangleArea = (shape.a * shape.b) / 2;
       shape.height = (shape.area - shape.triangleArea) / shape.a + shape.b;
+      //if shape is a triangle
     } else {
       shape.b = shape.a / Math.tan(shape.alpha);
       shape.isTriangle = true;
@@ -55,7 +57,47 @@ class Tube {
     }
     return shape;
   }
+  getAllFluidShapeByRad(rad, fluidLevel) {
+    const shapes = [];
+    //Returns a fluid object for each level.
+    for (let i = fluidLevel; i > 0; i--) {
+      shapes.push(tube.getFluidShapeByRad(rad, tube.fluidArea, i));
+    }
+    //Adds the fluid level difference to each fluid object.
+    shapes.forEach((shape, i, shapes) => {
+      let previousHeight = i === shapes.length - 1 ? 0 : shapes[i + 1].height;
+      let b = shape.height - previousHeight;
+      shape.fluidHeight = Math.tan(shape.alpha) * b;
+    });
+    for (let i = this.fluidMaxLevel - fluidLevel; i > 0; i--) {
+      shapes.unshift({ fluidHeight: 0 });
+    }
+    return shapes;
+  }
+  getAllAngles() {
+    const states = [];
+    for (let fluidLevel = this.fluidMaxLevel; fluidLevel > 0; fluidLevel--)
+      states.push(this.findTurnRad(fluidLevel));
+    return states;
+  }
+  //collecting the parameters needed for animation
+  get fluidAnimationParams() {
+    let degs = this.getAllAngles();
+    const stages = degs.map((deg, i) => {
+      return this.getAllFluidShapeByRad(
+        deg,
+        this.fluidMaxLevel - i
+      ).map((shape) => parseInt(shape.fluidHeight));
+    });
+    degs = degs.map((rad) => parseInt(this.radToDeg(rad)));
+    degs.push(90);
+    degs.unshift(0);
+    let stageLast = [...stages[0]].map((height) => 0);
+    let stage0 = [...stages[0]].map((height) => this.fluidHeight);
+    stages.push(stageLast);
+    stages.unshift(stage0);
+    return { degs: degs, stages: stages };
+  }
 }
 const tube = new Tube(250, 50);
-tube.fluidLevel = 3;
-console.log(tube.getFluidShapeByRad(tube.findTurnRad(), tube.fluidArea, 3));
+console.log(tube.fluidAnimationParams);
