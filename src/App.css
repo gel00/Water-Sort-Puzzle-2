@@ -10,3 +10,9 @@ body {
   background: rgb(0, 0, 0);
   background: url(../src/assets/img/bg_lg_dark.jpg);
 }
+.App .origin {
+  border: 1px solid red;
+}
+.App .destionation {
+  border: 1px solid blue;
+}
