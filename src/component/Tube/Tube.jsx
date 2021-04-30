@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import styles from "./Tube.module.scss";
+import { GameContext } from "../../services/GameProvider/GameProvider";
 import Fluid from "../Fluid";
 
 const Tube = ({ handleClick }) => {
+  const gameContext = useContext(GameContext);
+  const { width, height, fluidMaxLevel, fluidHeight } = gameContext.tube;
   const fluidColors = ["red", "red", "blue", "green"];
   const fluids = fluidColors.map((color) => {
     return { color: color, amount: 1 };
@@ -15,16 +18,29 @@ const Tube = ({ handleClick }) => {
       }
     }
   });
+  console.log(height);
   return (
     <div
+      style={{ height: height, width: width }}
       className={styles.tube}
       onClick={(event) => {
         handleClick(event.target);
       }}
     >
-      {fluids.reverse().map((fluid) => {
-        return <Fluid color={fluid.color} amount={fluid.amount}></Fluid>;
-      })}
+      <div
+        style={{ width: width * (fluidMaxLevel + 2) }}
+        className={styles.fluids}
+      >
+        {fluids.reverse().map((fluid) => {
+          return (
+            <Fluid
+              height={fluidHeight}
+              color={fluid.color}
+              amount={fluid.amount}
+            ></Fluid>
+          );
+        })}
+      </div>
     </div>
   );
 };

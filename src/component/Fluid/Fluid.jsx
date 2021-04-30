@@ -1,11 +1,15 @@
-import React from "react";
+import React, { createRef, useEffect } from "react";
 import styles from "./Fluid.module.scss";
 
-const Fluid = ({ color, amount }) => {
+const Fluid = ({ color, amount, height }) => {
+  //const [level, setlevel] = useState(amount);
+  const self = createRef();
+  useEffect(() => {}, []);
   return (
     <div
-      style={{ backgroundColor: color, height: amount * 50 + "px" }}
-      className={"fluid"}
+      ref={self}
+      style={{ backgroundColor: color, height: amount * height }}
+      className={styles.fluid}
     >
       red
     </div>

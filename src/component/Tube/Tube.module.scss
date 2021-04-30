@@ -26,4 +26,17 @@
       transparent
     );
   }
+
+  .fluids {
+    box-sizing: border-box;
+    position: absolute;
+    height: 100%;
+    width: 300px;
+    transform-origin: 50% 50%;
+    left: -125px;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+  }
 }

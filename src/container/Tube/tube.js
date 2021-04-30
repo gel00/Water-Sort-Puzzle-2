@@ -61,7 +61,7 @@ export default class Tube {
     const shapes = [];
     //Returns a fluid object for each level.
     for (let i = fluidLevel; i > 0; i--) {
-      shapes.push(tube.getFluidShapeByRad(rad, tube.fluidArea, i));
+      shapes.push(this.getFluidShapeByRad(rad, this.fluidArea, i));
     }
     //Adds the fluid level difference to each fluid object.
     shapes.forEach((shape, i, shapes) => {
@@ -99,5 +99,5 @@ export default class Tube {
     return { degs: degs, stages: stages };
   }
 }
-const tube = new Tube(250, 50);
-console.log(tube.fluidAnimationParams);
+//const tube = new Tube(250, 50);
+//console.log(tube.fluidAnimationParams);
